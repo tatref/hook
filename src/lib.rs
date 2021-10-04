@@ -1,23 +1,21 @@
-//! The [`hook!`] macro helps to create libraries with the `LD_PRELOAD` hack
+//! The [`hook!`] macro helps to create libraries to do the `LD_PRELOAD` trick
+//!
+//! <http://www.goldsborough.me/c/low-level/kernel/2016/08/29/16-48-53-the_-ld_preload-_trick/>
 
 use proc_macro::TokenStream;
-use quote::{quote, ToTokens};
 use proc_macro2::Span;
-
-
+use quote::{quote, ToTokens};
 
 /// The macro
 ///
-/// https://www.netspi.com/blog/technical/network-penetration-testing/function-hooking-part-i-hooking-shared-library-function-calls-in-linux/
+/// <https://www.netspi.com/blog/technical/network-penetration-testing/function-hooking-part-i-hooking-shared-library-function-calls-in-linux/>
 ///
-/// We'll make a demo with `puts`
-/// Get function signature
-/// man puts
-/// int puts(const char *s);
+/// We'll make a demo with `puts`, whose function signature is ```int puts(const char *s);```
 ///
 /// `puts` will be generated, `fake_puts` must be created manually and match a special signature
-/// where the 1st arg will be a function similar to `puts`, and the remaining args will be the usual args
-/// from the `puts` function
+/// where the 1st arg is the signature of `puts`, and the remaining args will be the usual args
+/// from the `puts` function.
+/// The return type must match the return type of `puts`.
 ///
 /// ```no_run
 /// use libc::*;
@@ -26,6 +24,7 @@ use proc_macro2::Span;
 /// pub unsafe fn fake_puts(
 ///     real: unsafe extern fn(*const c_char) -> c_int,  // first comes the function signature
 ///     arg0: *const c_char                              // 1st argument
+///     //arg1: int c_char                               // 2nd argument
 ///     ) -> c_int {                                     // return type
 ///
 ///     // just forward the call to the real function
@@ -61,7 +60,12 @@ pub fn hook(items: TokenStream) -> TokenStream {
     for (idx, mut arg) in arguments_def.iter_mut().enumerate() {
         let arg_name = format!("arg{}", idx);
         arguments_names.push(arg_name.clone());
-        arg.name = Some((syn::Ident::new(&arg_name, Span::call_site()), syn::token::Colon { spans: [Span::call_site()] }));
+        arg.name = Some((
+            syn::Ident::new(&arg_name, Span::call_site()),
+            syn::token::Colon {
+                spans: [Span::call_site()],
+            },
+        ));
     }
     let return_type = f.output.to_token_stream();
 
@@ -98,4 +102,3 @@ pub fn hook(items: TokenStream) -> TokenStream {
     // Convert back to proc_macro::TokenStream
     generated.into()
 }
-

@@ -8,10 +8,9 @@ edition = "2018"
 
 [dependencies]
 syn = { version = "*", features = ["full", "printing", "extra-traits"] }
-quote = "*"
-proc-macro2 = "*"
-libc = "*"
-procfs = "*"
+quote = "1"
+proc-macro2 = "1"
+libc = "0.2"
 
 [lib]
 proc-macro = true
