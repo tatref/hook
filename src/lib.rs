@@ -19,7 +19,7 @@ use quote::{quote, ToTokens};
 ///
 /// ```no_run
 /// use libc::*;
-/// use hooked::hook;
+/// use hook::hook;
 ///
 /// pub unsafe fn fake_puts(
 ///     real: unsafe extern fn(*const c_char) -> c_int,  // first comes the function signature
